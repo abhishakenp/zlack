@@ -1265,7 +1265,7 @@ function zlackIsHttpUrl(url) {
 }
 
 function zlackIsSlackUrl(url) {
-    return zlackIsHttpUrl(url) && ZLACK_SLACK_HOST_RE.test(url.hostname || '');
+    return url && url.protocol === 'https:' && ZLACK_SLACK_HOST_RE.test(url.hostname || '');
 }
 
 function zlackIsSlackAppPath(pathname) {
@@ -1418,7 +1418,10 @@ function zlackDeferredWindow() {
 const originalWindowOpen = window.open;
 window.open = function(url, target, features) {
     const href = typeof url === 'string' ? url : (url && String(url));
-    const parsed = href ? zlackUrl(href) : null;
+    if (!href || href === 'about:blank') {
+        return originalWindowOpen.apply(this, arguments) || zlackDeferredWindow();
+    }
+    const parsed = zlackUrl(href);
 
     if (zlackSlackAppHref(href)) {
         zlackOpenSlackUrlInCurrentWindow(href);
@@ -1434,9 +1437,7 @@ window.open = function(url, target, features) {
         return null;
     }
 
-    const opened = originalWindowOpen.apply(this, arguments);
-    if (opened) return opened;
-    return (!href || href === 'about:blank') ? zlackDeferredWindow() : null;
+    return originalWindowOpen.apply(this, arguments);
 };
 
 document.addEventListener('click', (e) => {

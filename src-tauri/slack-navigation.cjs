@@ -50,7 +50,7 @@ const ZlackSlackNavigation = (function buildSlackNavigation() {
     if (typeof href !== 'string' || !href.trim()) return null;
     const url = parse(href, baseHref);
     if (!isHttp(url)) return null;
-    if (!isSlackHost(url.hostname)) return 'external';
+    if (url.protocol !== 'https:' || !isSlackHost(url.hostname)) return 'external';
     if (url.username || url.password) return null;
     if (NON_PAGE_HOST_RE.test(url.hostname)) return null;
     if (APP_PATH_RE.test(url.pathname)) return 'app';

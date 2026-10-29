@@ -818,6 +818,7 @@ fn restore_window(window: &tauri::Window) {
 
 fn main() {
     platform::prefer_private_webview2_runtime();
+    platform::work_around_nvidia_dmabuf_renderer();
 
     let quit = CustomMenuItem::new("quit".to_string(), "Quit Zlack");
     let show = CustomMenuItem::new("show".to_string(), "Show Zlack");

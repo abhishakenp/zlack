@@ -19,6 +19,23 @@ pub(crate) fn prefer_private_webview2_runtime() {
 #[cfg(not(target_os = "windows"))]
 pub(crate) fn prefer_private_webview2_runtime() {}
 
+// WebKitGTK's DMA-BUF renderer crashes on NVIDIA's proprietary driver
+// ("Error 71 (Protocol error) dispatching to Wayland display") or renders a
+// blank window. Fall back to the shared-memory renderer unless the user has
+// already chosen a value.
+#[cfg(all(unix, not(target_os = "macos")))]
+pub(crate) fn work_around_nvidia_dmabuf_renderer() {
+    if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_some() {
+        return;
+    }
+    if std::path::Path::new("/proc/driver/nvidia").exists() {
+        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    }
+}
+
+#[cfg(not(all(unix, not(target_os = "macos"))))]
+pub(crate) fn work_around_nvidia_dmabuf_renderer() {}
+
 #[cfg(target_os = "windows")]
 fn windows_downloads_dir() -> Option<PathBuf> {
     use windows::Win32::{
